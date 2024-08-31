@@ -11,7 +11,7 @@ source "amazon-ebs" "ubuntu" {
   profile = "sandbox"
   region  = "us-east-1"
 
-  ami_name      = "wiz-mongo"
+  ami_name      = "wiz-mongo-${formatdate("YY_MM_DD_hh_mm", timestamp())}"
   instance_type = "t2.micro"
 
   source_ami_filter {
@@ -23,12 +23,31 @@ source "amazon-ebs" "ubuntu" {
     most_recent = true
     owners      = ["979382823631"]
   }
-  ssh_username = "root"
+  ssh_username = "bitnami"
 }
 
 build {
-  name = "learn-packer"
-  sources = [
-    "source.amazon-ebs.ubuntu"
-  ]
+  name    = "wiz-mongo"
+  sources = ["source.amazon-ebs.ubuntu"]
+
+  provisioner "file" {
+    source      = "mongo-init.sh"
+    destination = "/home/bitnami/mongo-init.sh"
+  }
+
+  provisioner "file" {
+    source      = "setup-mongo.js"
+    destination = "/home/bitnami/setup-mongo.js"
+  }
+
+
+  provisioner "shell" {
+    inline = [
+      "chmod +x /home/bitnami/mongo-init.sh",
+      "/home/bitnami/mongo-init.sh",
+      "echo 'cleanup init files'",
+      "rm /home/bitnami/mongo-init.sh /home/bitnami/setup-mongo.js",
+    ]
+  }
+
 }
