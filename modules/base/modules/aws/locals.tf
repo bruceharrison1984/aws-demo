@@ -1,3 +1,7 @@
+data "aws_default_tags" "current" {}
+
+
+
 locals {
 
   // This is an easy way to make sure that we have all of the required subnet types, but allow for adding more options

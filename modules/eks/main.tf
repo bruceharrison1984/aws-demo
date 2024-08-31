@@ -1,64 +1,45 @@
 
-# Pulls in data from the base-infra workspace
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "20.16.0"
 
-data "terraform_remote_state" "base-infra" {
-  backend = "remote"
-
-  config = {
-    organization = var.tfc_organization
-    workspaces = {
-      name = var.base_infra_workspace_name
+  cluster_name    = "${var.name}-cluster"
+  cluster_version = "1.29"
+  cluster_addons = {
+    amazon-cloudwatch-observability = {
+      addon_version = "v1.7.0-eksbuild.1"
+      ## custom config to split TFE logs into well-named streams in Cloudwatch
+      configuration_values = file("${path.module}/fluent-bit-config.yaml")
     }
   }
-}
 
+  authentication_mode = "API_AND_CONFIG_MAP"
 
-# Sets locals from base-infra                         
+  ## NOTE: 
+  ##  This module is moving towards granular `access_entries` for permissions
+  ##  The current method of using `enable_cluster_creator_admin_permissions` may not work in future versions
+  enable_cluster_creator_admin_permissions = true
 
-locals {
-  base-infra = data.terraform_remote_state.base-infra.outputs
-}
+  vpc_id                         = var.vpc_id
+  subnet_ids                     = var.subnets
+  cluster_endpoint_public_access = true
 
-provider "aws" {
-  region = local.base-infra.aws_region
-}
+  eks_managed_node_group_defaults = {
+    ami_type = "AL2_x86_64"
+  }
 
-
-# TFE AWS EKS FDO Module                              
-
-module "terraform-enterprise-fdo" {
-  source                    = "./fdo-eks"
-  zone_name                 = local.base-infra.zone_name
-  region                    = local.base-infra.aws_region
-  tag                       = var.tfe_version
-  tfc_organization          = var.tfc_organization
-  base_infra_workspace_name = var.base_infra_workspace_name
-}
-
-
-# Outputs                                             
-
-output "step_1_create_cred_file" {
-  description = "Command used to set local AWS cred file that `kubectl` requires for permissions."
-  value       = "doormat aws cred-file add-profile --set-default -a <AWS_ACCOUNT_NAME>"
-}
-
-output "step_2_update_kubectl" {
-  description = "Command to use to set access to kubectl on local machine. This assumes [default] aws profile credentials are being used, otherwise append --profile <name_of_profile>."
-  value       = "aws eks --region ${local.base-infra.aws_region} update-kubeconfig --name ${module.terraform-enterprise-fdo.cluster_name}"
-}
-
-output "step_3_get_pods" {
-  description = "Command to get the pod name to use ."
-  value       = "export POD=$(kubectl get pods -n terraform-enterprise -o jsonpath='{.items[*].metadata.name}')"
-}
-
-output "step_4_app_url_initial_admin_user" {
-  description = "Command to create initial admin user token."
-  value       = "export IACT=$(kubectl exec -t -n terraform-enterprise $POD -- bash -c \"/usr/local/bin/tfectl admin token\") && echo \"https://${module.terraform-enterprise-fdo.random_pet}.${local.base-infra.zone_name}/admin/account/new?token=$IACT\""
-}
-
-output "step_5_app_url" {
-  description = "TFE app URL."
-  value       = "https://${module.terraform-enterprise-fdo.random_pet}.${local.base-infra.zone_name}"
+  eks_managed_node_groups = {
+    one = {
+      name           = "${var.name}-group"
+      instance_types = ["t3a.small"]
+      min_size       = 1
+      max_size       = 3
+      desired_size   = 2
+      iam_role_additional_policies = {
+        ## Allow nodes to write to cloudwatch via the amazon-cloudwatch-observability addon
+        ## https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Observability-EKS-addon.html
+        CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      }
+    }
+  }
 }

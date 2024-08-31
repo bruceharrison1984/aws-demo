@@ -18,8 +18,8 @@ locals {
   // the email is prefixed with a string of text followed by a semicolon, so we want to strip that away
   // we also want to convert an dots found within a user's username to dashes so that it can be used as a name for other resources
   user_name_raw = regex(":(.*?)@", data.aws_caller_identity.user.user_id)
-  user_name = replace(local.user_name_raw[0],".", "-")
-  user_email = replace(data.aws_caller_identity.user.user_id, "/^.*:/", "")
+  user_name     = replace(local.user_name_raw[0], ".", "-")
+  user_email    = replace(data.aws_caller_identity.user.user_id, "/^.*:/", "")
 
   tags = merge({
     Name    = local.user_name
@@ -220,7 +220,7 @@ resource "aws_s3_bucket_policy" "main" {
 #######
 
 data "aws_availability_zones" "available" {
-    state = "available"
+  state = "available"
 }
 
 module "subnet_addrs" {
