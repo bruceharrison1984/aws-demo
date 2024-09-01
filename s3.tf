@@ -3,14 +3,35 @@ resource "aws_s3_bucket" "main" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
-  bucket = aws_s3_bucket.main.bucket
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
+resource "aws_s3_bucket_public_access_block" "main" {
+  bucket                  = aws_s3_bucket.main.id
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
 
-## TODO: Make bucket public
+resource "aws_s3_bucket_policy" "public_read" {
+  bucket = aws_s3_bucket.main.id
+  policy = data.aws_iam_policy_document.allow_access_from_another_account.json
+
+  depends_on = [aws_s3_bucket_public_access_block.main]
+}
+
+data "aws_iam_policy_document" "allow_access_from_another_account" {
+  statement {
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      aws_s3_bucket.main.arn,
+      "${aws_s3_bucket.main.arn}/*",
+    ]
+  }
+}

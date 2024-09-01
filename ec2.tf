@@ -36,7 +36,7 @@ resource "aws_iam_instance_profile" "ec2" {
 resource "aws_instance" "mongo" {
   ami                         = "ami-04695503af0cb3cb1" //bitnami-mongodb-6.0.7-1-r01-linux-debian-11-x86_64-hvm-ebs-nami
   instance_type               = "t3.small"
-  subnet_id                   = module.vpc.public_subnets[0]
+  subnet_id                   = module.vpc.private_subnets[0]
   iam_instance_profile        = aws_iam_instance_profile.ec2.id
   key_name                    = "mongo" //created ahead of time
   associate_public_ip_address = true
