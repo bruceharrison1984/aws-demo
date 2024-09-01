@@ -18,10 +18,10 @@ module "vpc" {
   root_cidr = "10.1.0.0/16"
 }
 
-module "eks" {
-  source = "./modules/eks"
+# module "eks" {
+#   source = "./modules/eks"
 
-  name    = local.base_name
-  vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.private_subnets
-}
+#   name    = local.base_name
+#   vpc_id  = module.vpc.vpc_id
+#   subnets = module.vpc.private_subnets
+# }
