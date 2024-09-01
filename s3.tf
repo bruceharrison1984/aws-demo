@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "main" {
-  bucket = "wiz-backup-${random_string.main.result}"
+  bucket        = "wiz-backup-${random_string.main.result}"
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
@@ -11,3 +12,5 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
     }
   }
 }
+
+## TODO: Make bucket public

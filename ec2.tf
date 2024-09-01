@@ -45,6 +45,7 @@ resource "aws_instance" "mongo" {
   user_data = templatefile("userdata/start.sh", {
     SSM_USERNAME_PATH = aws_ssm_parameter.username.id
     SSM_PASSWORD_PATH = aws_ssm_parameter.password.id
+    S3_PATH           = aws_ssm_parameter.mongo_backup_s3.id
   })
   tags = {
     Name = "MongoDB"

@@ -29,3 +29,9 @@ resource "aws_ssm_parameter" "connectionstring" {
   type  = "SecureString"
   value = "need-data"
 }
+
+resource "aws_ssm_parameter" "mongo_backup_s3" {
+  name  = "/mongodb/backup-s3-bucket"
+  type  = "String"
+  value = "s3://${aws_s3_bucket.main.bucket}"
+}

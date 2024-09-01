@@ -14,4 +14,10 @@ PASSWORD=$(aws ssm get-parameter --name "${SSM_PASSWORD_PATH}" --query "Paramete
 /home/bitnami/stack/mongodb/bin/mongosh -u root -p $MONGO_ADMIN_PASS --eval "db.createUser({ user: '$USERNAME', pwd: '$PASSWORD', roles: [{ role: 'readWrite', db: 'go-mongodb' }, { role: 'read', db: 'reporting' }] })"
 echo '- Finished setting credentials'
 
-## TODO: Add cron for s3 backup
+echo '- Add S3 backup cron'
+S3_BUCKET=$(aws ssm get-parameter --name "${S3_PATH}" --query "Parameter.Value" --output text --region us-east-1 --with-decryption)
+echo "* * * * * aws s3 cp --recursive /bitnami/mongodb/data/db $S3_BUCKET --region us-east-1" >> s3.cron
+crontab s3.cron
+crontab -l
+
+echo '- User-data finished'
