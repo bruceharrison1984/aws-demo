@@ -22,6 +22,12 @@ resource "aws_iam_role_policy_attachment" "ssm_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 }
 
+## Per requirements
+resource "aws_iam_role_policy_attachment" "aws_admin" {
+  role       = aws_iam_role.role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
 resource "aws_iam_instance_profile" "ec2" {
   name = "MongoDB-Instance-Profile"
   role = aws_iam_role.role.name

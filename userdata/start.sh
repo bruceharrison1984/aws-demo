@@ -11,7 +11,7 @@ echo 'Setting User Credentials'
 USERNAME=$(aws ssm get-parameter --name "${SSM_USERNAME_PATH}" --query "Parameter.Value" --output text --region us-east-1 --with-decryption)
 PASSWORD=$(aws ssm get-parameter --name "${SSM_PASSWORD_PATH}" --query "Parameter.Value" --output text --region us-east-1 --with-decryption)
 
-echo "$USERNAME : $PASSWORD"
-
 /home/bitnami/stack/mongodb/bin/mongosh -u root -p $MONGO_ADMIN_PASS --eval "db.createUser({ user: '$USERNAME', pwd: '$PASSWORD', roles: [{ role: 'readWrite', db: 'go-mongodb' }, { role: 'read', db: 'reporting' }] })"
 echo '- Finished setting credentials'
+
+## TODO: Add cron for s3 backup
