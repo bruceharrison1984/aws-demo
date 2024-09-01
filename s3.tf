@@ -3,6 +3,7 @@ resource "aws_s3_bucket" "main" {
   force_destroy = true
 }
 
+## Per requirements, make bucket public
 resource "aws_s3_bucket_public_access_block" "main" {
   bucket                  = aws_s3_bucket.main.id
   block_public_acls       = false

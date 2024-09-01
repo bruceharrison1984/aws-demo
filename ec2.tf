@@ -22,7 +22,7 @@ resource "aws_iam_role_policy_attachment" "ssm_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 }
 
-## Per requirements
+## Per requirements, give too much access
 resource "aws_iam_role_policy_attachment" "aws_admin" {
   role       = aws_iam_role.role.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
