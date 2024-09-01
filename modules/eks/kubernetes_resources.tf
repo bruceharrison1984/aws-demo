@@ -52,13 +52,21 @@ resource "kubernetes_service_account" "service_account" {
   }
 }
 
+## Enabling ALB Controller via pure Terraform doesn't work well for a number of reasons
+## Local exec seems like a decent solution here, since it only runs once anyway
 resource "null_resource" "cluster" {
   triggers = {
-    cluster_name = module.eks.cluster_name
+    cluster_name = kubernetes_service_account.service_account.metadata[0].name
   }
 
   provisioner "local-exec" {
-    command     = "./init-alb-controller.sh ${module.eks.cluster_name} ${kubernetes_service_account.service_account.metadata.name}"
-    interpreter = ["bash"]
+    working_dir = path.module
+    interpreter = ["bash", "-c"]
+    command     = "./init-alb-controller.sh"
+
+    environment = {
+      CLUSTER_NAME         = module.eks.cluster_name
+      SERVICE_ACCOUNT_NAME = kubernetes_service_account.service_account.metadata[0].name
+    }
   }
 }

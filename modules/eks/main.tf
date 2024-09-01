@@ -8,8 +8,26 @@ module "eks" {
   cluster_addons = {
     amazon-cloudwatch-observability = {
       addon_version = "v1.7.0-eksbuild.1"
-      ## custom config to split TFE logs into well-named streams in Cloudwatch
-      configuration_values = file("${path.module}/fluent-bit-config.yaml")
+    }
+    coredns = {
+      addon_version = "v1.11.1-eksbuild.11"
+    }
+    kube-proxy = {
+      addon_version = "v1.29.7-eksbuild.2"
+    }
+    vpc-cni = {
+      # Specify the VPC CNI addon should be deployed before compute to ensure
+      # the addon is configured before data plane compute resources are created
+      # See README for further details
+      before_compute = true
+      addon_version  = "v1.18.3-eksbuild.2"
+      configuration_values = jsonencode({
+        env = {
+          # Reference docs https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
+        }
+      })
     }
   }
 
