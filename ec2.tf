@@ -36,10 +36,10 @@ resource "aws_iam_instance_profile" "ec2" {
 resource "aws_instance" "mongo" {
   ami                    = "ami-04695503af0cb3cb1" //bitnami-mongodb-6.0.7-1-r01-linux-debian-11-x86_64-hvm-ebs-nami
   instance_type          = "t3.small"
-  subnet_id              = module.vpc.private_subnets[0]
+  subnet_id              = module.vpc.database_subnets[0]
   iam_instance_profile   = aws_iam_instance_profile.ec2.id
   key_name               = "mongo" //created ahead of time
-  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+  vpc_security_group_ids = [aws_security_group.allow_outbound.id]
 
   user_data = templatefile("userdata/start.sh", {
     SSM_USERNAME_PATH = aws_ssm_parameter.username.id
@@ -51,25 +51,17 @@ resource "aws_instance" "mongo" {
   }
 }
 
-# resource "aws_security_group" "allow_ssh" {
-#   name   = "Allow SSH"
-#   vpc_id = module.vpc.vpc_id
+resource "aws_security_group" "allow_outbound" {
+  name   = "Allow Outbound"
+  vpc_id = module.vpc.vpc_id
 
-#   tags = {
-#     Name = "Allow SSH"
-#   }
-# }
+  tags = {
+    Name = "Allow SSH"
+  }
+}
 
-# resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
-#   security_group_id = aws_security_group.allow_ssh.id
-#   cidr_ipv4         = "0.0.0.0/0"
-#   from_port         = 22
-#   ip_protocol       = "tcp"
-#   to_port           = 22
-# }
-
-# resource "aws_vpc_security_group_egress_rule" "allow_ssh" {
-#   security_group_id = aws_security_group.allow_ssh.id
-#   cidr_ipv4         = "0.0.0.0/0"
-#   ip_protocol       = -1
-# }
+resource "aws_vpc_security_group_egress_rule" "allow_outbound" {
+  security_group_id = aws_security_group.allow_outbound.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = -1
+}
