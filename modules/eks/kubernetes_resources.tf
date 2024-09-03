@@ -83,7 +83,7 @@ YAML
 }
 
 resource "kubectl_manifest" "alb_controller_prereqs" {
-  count     = length(data.kubectl_file_documents.alb_controller_prereqs.documents)
+  count     = 3
   yaml_body = element(data.kubectl_file_documents.alb_controller_prereqs.documents, count.index)
 }
 
@@ -190,6 +190,6 @@ YAML
 }
 
 resource "kubectl_manifest" "tasky_app" {
-  count     = length(data.kubectl_file_documents.tasky_app.documents)
+  count     = 4
   yaml_body = element(data.kubectl_file_documents.tasky_app.documents, count.index)
 }
