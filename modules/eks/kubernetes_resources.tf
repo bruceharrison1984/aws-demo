@@ -83,8 +83,8 @@ YAML
 }
 
 resource "kubectl_manifest" "alb_controller_prereqs" {
-  for_each  = data.kubectl_file_documents.alb_controller_prereqs.manifests
-  yaml_body = each.value
+  count     = length(data.kubectl_file_documents.alb_controller_prereqs.documents)
+  yaml_body = element(data.kubectl_file_documents.alb_controller_prereqs.documents, count.index)
 }
 
 resource "helm_release" "alb_controller" {
@@ -190,6 +190,6 @@ YAML
 }
 
 resource "kubectl_manifest" "tasky_app" {
-  for_each  = data.kubectl_file_documents.tasky_app.manifests
-  yaml_body = each.value
+  count     = length(data.kubectl_file_documents.tasky_app.documents)
+  yaml_body = element(data.kubectl_file_documents.tasky_app.documents, count.index)
 }
