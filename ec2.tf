@@ -54,6 +54,9 @@ resource "aws_instance" "mongo" {
 resource "aws_security_group" "allow_outbound" {
   name   = "MongoDB"
   vpc_id = module.vpc.vpc_id
+  tags = {
+    Name = "MongoDB"
+  }
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_outbound" {
