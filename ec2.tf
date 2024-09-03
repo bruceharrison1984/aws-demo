@@ -52,18 +52,17 @@ resource "aws_instance" "mongo" {
 }
 
 resource "aws_security_group" "allow_outbound" {
-  name   = "Allow Outbound"
+  name   = "MongoDB"
   vpc_id = module.vpc.vpc_id
-
-  tags = {
-    Name = "Allow SSH"
-  }
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_outbound" {
   security_group_id = aws_security_group.allow_outbound.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = -1
+  tags = {
+    Name = "Allow Outbound"
+  }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_eks" {
@@ -72,4 +71,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_eks" {
   ip_protocol                  = "tcp"
   to_port                      = 27017
   from_port                    = 27017
+  tags = {
+    Name = "Allow Inbound from EKS"
+  }
 }

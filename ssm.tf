@@ -27,7 +27,7 @@ resource "aws_ssm_parameter" "password" {
 resource "aws_ssm_parameter" "connectionstring" {
   name  = "/mongodb/connection-string"
   type  = "SecureString"
-  value = "need-data"
+  value = "mongodb://${random_string.username.result}:${random_string.password.result}@${aws_route53_record.mongo.name}/go-mongodb"
 }
 
 resource "aws_ssm_parameter" "mongo_backup_s3" {
