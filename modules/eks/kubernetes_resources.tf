@@ -45,7 +45,7 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
 ## Give the cluster time to complete initialization before running manifests
 resource "time_sleep" "wait_3_minutes" {
   depends_on      = [aws_iam_role_policy_attachment.alb_controller]
-  create_duration = "180ss"
+  create_duration = "180s"
 }
 
 data "kubectl_file_documents" "alb_controller_prereqs" {
