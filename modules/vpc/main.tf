@@ -14,7 +14,7 @@ locals {
   subnet_types = ["public", "private", "db"]
 
   // This creates a list of the first three AZs that are found to be available in the region that is configured to be deployed into. If there are less than 3 AZs available, all of the available AZs will be selected by default
-  first_three_azs = slice(data.aws_availability_zones.available.names, 0, min(2, length(data.aws_availability_zones.available.names)))
+  first_three_azs = slice(data.aws_availability_zones.available.names, 0, min(3, length(data.aws_availability_zones.available.names)))
 
   // This allows us to create an exhaustive list of combinations of availability zones to subnet types so that we can
   // create a subnet of each type in each availability zone.

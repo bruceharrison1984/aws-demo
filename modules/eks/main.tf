@@ -49,7 +49,7 @@ module "eks" {
   eks_managed_node_groups = {
     one = {
       name           = "${var.name}-group"
-      instance_types = ["t3a.small"]
+      instance_types = ["t3a.medium"]
       min_size       = 1
       max_size       = 3
       desired_size   = 2
