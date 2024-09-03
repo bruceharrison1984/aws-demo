@@ -83,7 +83,7 @@ YAML
 }
 
 resource "kubectl_manifest" "alb_controller_prereqs" {
-  for_each  = data.kubectl_file_documents.docs.manifests
+  for_each  = data.kubectl_file_documents.alb_controller_prereqs.manifests
   yaml_body = each.value
 }
 
@@ -190,6 +190,6 @@ YAML
 }
 
 resource "kubectl_manifest" "tasky_app" {
-  for_each  = data.kubectl_file_documents.docs.manifests
+  for_each  = data.kubectl_file_documents.tasky_app.manifests
   yaml_body = each.value
 }
