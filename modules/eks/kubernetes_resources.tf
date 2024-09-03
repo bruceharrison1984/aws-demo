@@ -109,7 +109,7 @@ resource "helm_release" "alb_controller" {
     value = "aws-load-balancer-controller"
   }
 
-  depends_on = [kubectl_manifest.alb_controller_prereqs]
+  depends_on = [kubectl_manifest.ingress_class]
 }
 
 ## Give the alb controller to complete initialization before loading app
