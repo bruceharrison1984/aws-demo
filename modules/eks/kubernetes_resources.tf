@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "alb_controller_assume" {
       test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:sub"
 
-      values = ["system:serviceaccount:default:load-balancer-controller"]
+      values = ["system:serviceaccount:default:aws-load-balancer-controller"]
     }
   }
 }
@@ -55,7 +55,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: kube-system
-  name: load-balancer-controller
+  name: aws-load-balancer-controller
   annotations:
     eks.amazonaws.com/role-arn: ${aws_iam_role.alb_controller.arn}
 ---
@@ -98,7 +98,7 @@ resource "helm_release" "alb_controller" {
   }
   set {
     name  = "serviceAccount.name"
-    value = "load-balancer-controller"
+    value = "aws-load-balancer-controller"
   }
 
   depends_on = [kubectl_manifest.alb_controller_prereqs]
@@ -113,7 +113,6 @@ resource "time_sleep" "wait_60_seconds" {
 resource "kubectl_manifest" "tasky_app" {
   depends_on = [time_sleep.wait_60_seconds]
   yaml_body  = <<YAML
----
 apiVersion: v1
 kind: Namespace
 metadata:
