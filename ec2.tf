@@ -66,7 +66,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_outbound" {
   ip_protocol       = -1
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_outbound" {
+resource "aws_vpc_security_group_ingress_rule" "allow_eks" {
   security_group_id            = aws_security_group.allow_outbound.id
   referenced_security_group_id = module.eks.node_security_group_id
   ip_protocol                  = "tcp"
