@@ -110,7 +110,7 @@ resource "time_sleep" "wait_60_seconds" {
   create_duration = "60s"
 }
 
-resource "kubectl_manifest" "alb_controller_prereqs" {
+resource "kubectl_manifest" "tasky_app" {
   depends_on = [time_sleep.wait_60_seconds]
   yaml_body  = <<YAML
 ---
