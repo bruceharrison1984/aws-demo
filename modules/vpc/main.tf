@@ -44,8 +44,8 @@ module "vpc" {
   private_subnets  = [for network in module.subnet_addrs.networks : network["cidr_block"] if split("_", network["name"])[1] == "private"]
   database_subnets = [for network in module.subnet_addrs.networks : network["cidr_block"] if split("_", network["name"])[1] == "db"]
 
-  public_subnet_tags   = { Type = "public" }
-  private_subnet_tags  = { Type = "private" }
+  public_subnet_tags   = { Type = "public", "kubernetes.io/role/elb" = 1 }
+  private_subnet_tags  = { Type = "private", "kubernetes.io/role/internal-elb" = 1 }
   database_subnet_tags = { Type = "db" }
 
   create_database_subnet_group = true

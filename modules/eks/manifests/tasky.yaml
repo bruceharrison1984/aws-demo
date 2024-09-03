@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tasky
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tasky
+  name: task-deployment
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tasky-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tasky-app
+    spec:
+      containers:
+      - image: public.ecr.aws/l6m2t8p7/docker-2048:latest
+        imagePullPolicy: Always
+        name: tasky-app
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: tasky
+  name: tasky-service
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: tasky-app
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: tasky
+  name: tasky-ingress
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: tasky-service
+              port:
+                number: 80
