@@ -20,7 +20,7 @@ spec:
         app.kubernetes.io/name: tasky-app
     spec:
       containers:
-      - image: public.ecr.aws/l6m2t8p7/docker-2048:latest
+      - image: leeharrison1984/tasky:latest
         imagePullPolicy: Always
         name: tasky-app
         ports:

@@ -103,3 +103,77 @@ resource "helm_release" "alb_controller" {
 
   depends_on = [kubectl_manifest.alb_controller_prereqs]
 }
+
+## Give the alb controller to complete initialization before loading app
+resource "time_sleep" "wait_60_seconds" {
+  depends_on      = [helm_release.alb_controller]
+  create_duration = "60s"
+}
+
+resource "kubectl_manifest" "alb_controller_prereqs" {
+  depends_on = [time_sleep.wait_60_seconds]
+  yaml_body  = <<YAML
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tasky
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tasky
+  name: task-deployment
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tasky-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tasky-app
+    spec:
+      containers:
+      - image: leeharrison1984/tasky:latest
+        imagePullPolicy: Always
+        name: tasky-app
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: tasky
+  name: tasky-service
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: tasky-app
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: tasky
+  name: tasky-ingress
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: tasky-service
+              port:
+                number: 80
+YAML
+}
