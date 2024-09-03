@@ -16,8 +16,7 @@ terraform {
 #######
 
 provider "aws" {
-  region  = var.aws_region
-  profile = "sandbox"
+  region = "us-east-1"
   default_tags {
     tags = {
       project = "wiz-interview"
