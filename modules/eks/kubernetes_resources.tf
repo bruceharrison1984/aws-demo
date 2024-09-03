@@ -48,10 +48,8 @@ resource "time_sleep" "wait_3_minutes" {
   create_duration = "180s"
 }
 
-data "kubectl_file_documents" "alb_controller_prereqs" {
-  depends_on = [time_sleep.wait_3_minutes]
-
-  content = <<YAML
+resource "kubectl_manifest" "alb_service_account" {
+  yaml_body = <<YAML
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -59,14 +57,23 @@ metadata:
   name: aws-load-balancer-controller
   annotations:
     eks.amazonaws.com/role-arn: ${aws_iam_role.alb_controller.arn}
----
+YAML
+}
+
+resource "kubectl_manifest" "ingress_class_params" {
+  yaml_body = <<YAML
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: IngressClassParams
 metadata:
   labels:
     app.kubernetes.io/name: aws-load-balancer-controller
   name: alb
----
+YAML
+}
+
+resource "kubectl_manifest" "ingress_class" {
+  depends_on = [kubectl_manifest.ingress_class_params]
+  yaml_body  = <<YAML
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
@@ -80,11 +87,6 @@ spec:
     kind: IngressClassParams
     name: alb
 YAML
-}
-
-resource "kubectl_manifest" "alb_controller_prereqs" {
-  count     = 3
-  yaml_body = element(data.kubectl_file_documents.alb_controller_prereqs.documents, count.index)
 }
 
 resource "helm_release" "alb_controller" {
@@ -116,15 +118,19 @@ resource "time_sleep" "wait_30_seconds" {
   create_duration = "30s"
 }
 
-data "kubectl_file_documents" "tasky_app" {
+resource "kubectl_manifest" "tasky_namespace" {
   depends_on = [time_sleep.wait_30_seconds]
-
-  content = <<YAML
+  yaml_body  = <<YAML
 apiVersion: v1
 kind: Namespace
 metadata:
   name: tasky
----
+YAML
+}
+
+resource "kubectl_manifest" "tasky_deployment" {
+  depends_on = [kubectl_manifest.tasky_namespace]
+  yaml_body  = <<YAML
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -151,7 +157,12 @@ spec:
           value: ${var.mongo_connection_string}
         - name: SECRET_KEY
           value: secret123
----
+YAML
+}
+
+resource "kubectl_manifest" "tasky_service" {
+  depends_on = [kubectl_manifest.tasky_deployment]
+  yaml_body  = <<YAML
 apiVersion: v1
 kind: Service
 metadata:
@@ -165,7 +176,12 @@ spec:
   type: NodePort
   selector:
     app.kubernetes.io/name: tasky-app
----
+YAML
+}
+
+resource "kubectl_manifest" "tasky_networking" {
+  depends_on = [kubectl_manifest.tasky_service]
+  yaml_body  = <<YAML
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -187,9 +203,4 @@ spec:
               port:
                 number: 80
 YAML
-}
-
-resource "kubectl_manifest" "tasky_app" {
-  count     = 4
-  yaml_body = element(data.kubectl_file_documents.tasky_app.documents, count.index)
 }
