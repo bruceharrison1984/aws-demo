@@ -48,7 +48,7 @@ resource "time_sleep" "wait_3_minutes" {
   create_duration = "180s"
 }
 
-resource "kubectl_manifest" "alb_service_account" {
+resource "kubectl_manifest" "alb_prereqs" {
   yaml_body = <<YAML
 apiVersion: v1
 kind: ServiceAccount
@@ -57,23 +57,14 @@ metadata:
   name: aws-load-balancer-controller
   annotations:
     eks.amazonaws.com/role-arn: ${aws_iam_role.alb_controller.arn}
-YAML
-}
-
-resource "kubectl_manifest" "ingress_class_params" {
-  yaml_body = <<YAML
+---
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: IngressClassParams
 metadata:
   labels:
     app.kubernetes.io/name: aws-load-balancer-controller
   name: alb
-YAML
-}
-
-resource "kubectl_manifest" "ingress_class" {
-  depends_on = [kubectl_manifest.ingress_class_params]
-  yaml_body  = <<YAML
+---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
@@ -87,6 +78,8 @@ spec:
     kind: IngressClassParams
     name: alb
 YAML
+
+  depends_on = [time_sleep.wait_3_minutes]
 }
 
 resource "helm_release" "alb_controller" {
@@ -109,7 +102,7 @@ resource "helm_release" "alb_controller" {
     value = "aws-load-balancer-controller"
   }
 
-  depends_on = [kubectl_manifest.ingress_class]
+  depends_on = [kubectl_manifest.alb_prereqs]
 }
 
 ## Give the alb controller to complete initialization before loading app
