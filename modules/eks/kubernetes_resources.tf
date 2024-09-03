@@ -121,8 +121,33 @@ metadata:
 YAML
 }
 
-resource "kubectl_manifest" "tasky_deployment" {
+resource "kubectl_manifest" "tasky_service_account" {
   depends_on = [kubectl_manifest.tasky_namespace]
+  yaml_body  = <<YAML
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: tasky
+  name: tasky-service-account
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tasky-admin-binding
+subjects:
+- kind: ServiceAccount
+  name: tasky-service-account
+  namespace: tasky
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: ""
+YAML
+}
+
+resource "kubectl_manifest" "tasky_deployment" {
+  depends_on = [kubectl_manifest.tasky_service_account]
   yaml_body  = <<YAML
 apiVersion: apps/v1
 kind: Deployment
@@ -139,6 +164,7 @@ spec:
       labels:
         app.kubernetes.io/name: tasky-app
     spec:
+      serviceAccountName: tasky-service-account
       containers:
       - image: leeharrison1984/tasky:latest
         imagePullPolicy: Always
