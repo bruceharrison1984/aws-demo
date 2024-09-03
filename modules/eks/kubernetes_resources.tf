@@ -141,7 +141,7 @@ spec:
         - containerPort: 8080
         env:
         - name: MONGODB_URI
-          value: mongodb://44rn6cjOXiGvDXeV:ruX6FZSPYCa6xGgC@mongo.wiz-demo.com:27017
+          value: ${var.mongo_connection_string}
         - name: SECRET_KEY
           value: secret123
 ---

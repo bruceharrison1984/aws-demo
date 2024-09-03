@@ -21,7 +21,8 @@ module "vpc" {
 module "eks" {
   source = "./modules/eks"
 
-  name    = local.base_name
-  vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.private_subnets
+  name                    = local.base_name
+  vpc_id                  = module.vpc.vpc_id
+  subnets                 = module.vpc.private_subnets
+  mongo_connection_string = "mongodb://${random_string.username.result}:${random_string.password.result}@${aws_route53_record.mongo.name}:27017"
 }

@@ -9,3 +9,7 @@ variable "vpc_id" {
 variable "subnets" {
   type = list(string)
 }
+
+variable "mongo_connection_string" {
+  type = string
+}
