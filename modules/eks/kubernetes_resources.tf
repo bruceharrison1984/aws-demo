@@ -43,14 +43,15 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
 }
 
 ## Give the cluster time to complete initialization before running manifests
-resource "time_sleep" "wait_5_minutes" {
+resource "time_sleep" "wait_3_minutes" {
   depends_on      = [aws_iam_role_policy_attachment.alb_controller]
-  create_duration = "300s"
+  create_duration = "180ss"
 }
 
-resource "kubectl_manifest" "alb_controller_prereqs" {
-  depends_on = [time_sleep.wait_5_minutes]
-  yaml_body  = <<YAML
+data "kubectl_file_documents" "alb_controller_prereqs" {
+  depends_on = [time_sleep.wait_3_minutes]
+
+  content = <<YAML
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -81,6 +82,11 @@ spec:
 YAML
 }
 
+resource "kubectl_manifest" "alb_controller_prereqs" {
+  for_each  = data.kubectl_file_documents.docs.manifests
+  yaml_body = each.value
+}
+
 resource "helm_release" "alb_controller" {
   name       = "terraform-enterprise"
   repository = "https://aws.github.io/eks-charts"
@@ -105,14 +111,15 @@ resource "helm_release" "alb_controller" {
 }
 
 ## Give the alb controller to complete initialization before loading app
-resource "time_sleep" "wait_60_seconds" {
+resource "time_sleep" "wait_30_seconds" {
   depends_on      = [helm_release.alb_controller]
-  create_duration = "60s"
+  create_duration = "30s"
 }
 
-resource "kubectl_manifest" "tasky_app" {
-  depends_on = [time_sleep.wait_60_seconds]
-  yaml_body  = <<YAML
+data "kubectl_file_documents" "tasky_app" {
+  depends_on = [time_sleep.wait_30_seconds]
+
+  content = <<YAML
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -180,4 +187,9 @@ spec:
               port:
                 number: 80
 YAML
+}
+
+resource "kubectl_manifest" "tasky_app" {
+  for_each  = data.kubectl_file_documents.docs.manifests
+  yaml_body = each.value
 }
