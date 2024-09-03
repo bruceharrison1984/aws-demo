@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "alb_controller_assume" {
       test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:sub"
 
-      values = ["system:serviceaccount:default:aws-load-balancer-controller"]
+      values = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
     }
   }
 }
