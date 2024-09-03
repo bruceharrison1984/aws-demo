@@ -139,6 +139,11 @@ spec:
         name: tasky-app
         ports:
         - containerPort: 8080
+        env:
+        - name: MONGODB_URI
+          value: mongodb://44rn6cjOXiGvDXeV:ruX6FZSPYCa6xGgC@mongo.wiz-demo.com:27017
+        - name: SECRET_KEY
+          value: secret123
 ---
 apiVersion: v1
 kind: Service
