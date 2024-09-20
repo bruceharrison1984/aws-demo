@@ -11,3 +11,4 @@
 - ALB isn't cleaned up after TF destroy
     - This is because it is created by EKS
     - In production, the ALB would be manually created and we would assign necessary annotations to K8s resources to facilitate the connection
+      - Or we simply don't worry about this, since we wouldn't ever want to fully destroy the environment
